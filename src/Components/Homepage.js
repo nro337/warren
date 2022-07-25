@@ -1,10 +1,14 @@
-import { Box, Center, Column, NativeBaseProvider, Row, Text, Flex, Input, Button, View, Pressable, ScrollView } from "native-base";
+import { Box, Center, Column, NativeBaseProvider, Row, Text, Flex, Input, Button, IconButton, View, Icon, Pressable, ScrollView } from "native-base";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { extendTheme } from 'native-base';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { useState } from "react";
-import * as ImagePicker from 'expo-image-picker'
-import {Image} from "react-native"
+import { useState, useEffect } from "react";
+import * as ImagePicker from 'expo-image-picker';
+import {Permissions} from 'expo-image-picker';
+import {Image, Alert} from "react-native";
+import { Camera, CameraType } from "expo-camera";
+
+import { FontAwesome, Ionicons, MaterialIcons } from '@expo/vector-icons';
 
 const config = {
   useSystemColorMode: false,
@@ -18,6 +22,8 @@ export default function Homepage({navigation}) {
   const [mode, setMode] = useState('date');
   const [show, setShow] = useState(false);
   const [image, setImage] = useState(null);
+  const [hasPermission, setHasPermission] = useState(null);
+  const [cameraPermission, setCameraPermission] = ImagePicker.useCameraPermissions();
   
   const onChange = (event, selectedDate) => {
     const currentDate = selectedDate;
@@ -55,6 +61,30 @@ export default function Homepage({navigation}) {
     }
   };
 
+  const openCamera = async () => {
+    if(cameraPermission.granted === true){
+       let data =  await ImagePicker.launchCameraAsync({
+         mediaTypes:ImagePicker.MediaTypeOptions.Images,
+         allowsEditing:true,
+         aspect:[1,1],
+         quality:0.5
+       })
+      if(!data.cancelled){
+        let newfile = { 
+         uri:data.uri,
+         type:`test/${data.uri.split(".")[1]}`,
+         name:`test.${data.uri.split(".")[1]}` 
+ 
+       }
+        // handleUpload(newfile)
+        console.log(newfile)
+        setImage(newfile.uri)
+      }
+    }else{
+      Alert.alert("you need to give up permission to work")
+    }
+  }
+
   return (
     <NativeBaseProvider theme={customTheme}>
       <Box flex={1} bg="lightBlue.400" alignItems="center" justifyContent="center">
@@ -74,23 +104,28 @@ export default function Homepage({navigation}) {
               image ? <Center w="98%" h="4/6" bg="darkBlue.600" shadow={3}>
               <Row alignItems="center">
                 <Column alignItems="center" w="1/2">
-                  <Text fontSize={"xl"} alignSelf="center">Picture</Text>
+                  <Text fontSize={"xl"} alignSelf="center">Product Picture</Text>
                 </Column>
                 <Column alignItems="center" w="1/2">
-                  {image && <Image source={{ uri: image }} style={{ width: 150, height: 150 }} />}
-                  <Button mt="8" onPress={() => pickImage()}>Pick an image</Button>
+                  <Row alignItems="center" mb="8" space="8">
+                    <IconButton onPress={() => openCamera()} icon={<MaterialIcons name="add-a-photo" size={34} color="white" />} variant="solid" bg="primary.600"></IconButton>
+                    <IconButton onPress={() => pickImage()} icon={<Ionicons name="md-images-outline" size={30} color="white" />} variant="solid" bg="primary.600"></IconButton>
+                  </Row>
+                  <Column alignItems="center">
+                    {image && <Image source={{ uri: image }} style={{ width: 150, height: 150 }} />}
+                  </Column>
                 </Column>
               </Row>
             </Center> : <Center w="98%" h="1/6" bg="darkBlue.600" shadow={3}>
               <Row alignItems="center">
                 <Column alignItems="center" w="1/2">
-                  <Text fontSize={"xl"} alignSelf="center">Picture</Text>
+                  <Text fontSize={"xl"} alignSelf="center">Product Picture</Text>
                 </Column>
-                <Column alignItems="center" w="1/2">
-                  {/* <Input size="lg" placeholder="Name" w="100%" mr="4" bg='white' /> */}
-                  <Button onPress={() => pickImage()}>Pick an image</Button>
-                  {image && <Image source={{ uri: image }} style={{ width: 200, height: 200 }} />}
-                </Column>
+                <Row alignItems="center" justifyContent="space-evenly" w="1/2">
+                    {/* <Input size="lg" placeholder="Name" w="100%" mr="4" bg='white' /> */}
+                  <IconButton onPress={() => openCamera()} icon={<MaterialIcons name="add-a-photo" size={34} color="white" />} variant="solid" bg="primary.600"></IconButton>
+                  <IconButton onPress={() => pickImage()} icon={<Ionicons name="md-images-outline" size={30} color="white" />} variant="solid" bg="primary.600"></IconButton>
+                </Row>
               </Row>
             </Center>
             }
