@@ -6,6 +6,7 @@ import { createStackNavigator } from "@react-navigation/stack";
 import { Ionicons } from '@expo/vector-icons';
 
 import Homepage from "../src/Components/Homepage";
+import Catalog from "../src/Components/Catalog"
 
 const Tab = createBottomTabNavigator();
 
@@ -31,7 +32,9 @@ export default function AppNavigation() {
               iconName = focused ? 'home' : 'home-outline';
               color = focused ? 'darkblue' : 'gray';
               
-            } 
+            } else if (route.name == 'Catalog') {
+              iconName = focused ? 'list' : 'list-outline';
+            }
             // else if (route.name === 'Result List') {
             //   iconName = focused ? 'trophy' : 'trophy-outline';
             // } else if (route.name === 'Settings') {
@@ -42,6 +45,7 @@ export default function AppNavigation() {
         })}
       >
         <Tab.Screen name="Home" component={HomeStack} options={{headerShown: false}}/>
+        <Tab.Screen name="Catalog" component={Catalog} />
       </Tab.Navigator>
     </NavigationContainer>
   )
