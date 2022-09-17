@@ -1,9 +1,13 @@
 import React, {useEffect, useState} from "react";
+import { Button, Text } from "react-native";
 import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import { createStackNavigator } from "@react-navigation/stack";
 
 import { Ionicons } from '@expo/vector-icons';
+
+import { supabase } from '../database/supabase'
+//import { session } from '@supabase/supabase-js'
 
 import Homepage from "../src/Components/Homepage";
 import Catalog from "../src/Components/Catalog"
@@ -12,15 +16,94 @@ const Tab = createBottomTabNavigator();
 
 const Stack = createStackNavigator();
 
-function HomeStack({navigation}) {
-  return (
-    <Stack.Navigator>
-      <Stack.Screen name="Warren" component={Homepage} />
-    </Stack.Navigator>
-  )
-}
 
-export default function AppNavigation() {
+export default function AppNavigation({session}) {
+  const [loading, setLoading] = useState(true)
+  const [username, setUsername] = useState('')
+  const [website, setWebsite] = useState('')
+  const [avatarUrl, setAvatarUrl] = useState('')
+
+  console.log(session)
+
+  useEffect(() => {
+    if (session) getProfile()
+  }, [session])
+
+  async function getProfile() {
+    try {
+      setLoading(true)
+      if (!session?.user) throw new Error('No user on the session!')
+
+      let { data, error, status } = await supabase
+        .from('profiles')
+        .select(`username, website, avatar_url`)
+        .eq('id', session?.user.id)
+        .single()
+      if (error && status !== 406) {
+        throw error
+      }
+
+      if (data) {
+        setUsername(data.username)
+        setWebsite(data.website)
+        setAvatarUrl(data.avatar_url)
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        Alert.alert(error.message)
+      }
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function updateProfile({
+    username,
+    website,
+    avatar_url,
+  }) {
+    try {
+      setLoading(true)
+      if (!session?.user) throw new Error('No user on the session!')
+
+      const updates = {
+        id: session?.user.id,
+        username,
+        website,
+        avatar_url,
+        updated_at: new Date(),
+      }
+
+      let { error } = await supabase.from('profiles').upsert(updates)
+
+      if (error) {
+        throw error
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        Alert.alert(error.message)
+      }
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  function HomeStack({navigation}) {
+    return (
+      <Stack.Navigator>
+        <Stack.Screen name="Warren" component={Homepage} options={{
+          headerRight:() => (
+            <Button title="Sign Out" onPress={() => supabase.auth.signOut()} />
+          ),
+          headerLeft: () => (
+            <Text>{username}</Text>
+          )
+        }} 
+        />
+      </Stack.Navigator>
+    )
+  }
+
   return (
     <NavigationContainer>
       <Tab.Navigator
@@ -44,7 +127,7 @@ export default function AppNavigation() {
           }
         })}
       >
-        <Tab.Screen name="Home" component={HomeStack} options={{headerShown: false}}/>
+        <Tab.Screen name="Home" component={HomeStack} options={{headerShown: false}} />
         <Tab.Screen name="Catalog" component={Catalog} />
       </Tab.Navigator>
     </NavigationContainer>

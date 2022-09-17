@@ -1,12 +1,31 @@
 import { StatusBar } from 'expo-status-bar';
+import { useState, useEffect } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
+import { supabase } from './database/supabase'
+import Auth from './src/Components/Auth';
+import { Session } from '@supabase/supabase-js'
+import 'react-native-url-polyfill/auto'
 
 import AppNavigation from './navigation/AppNavigation';
 
 export default function App() {
+  const [session, setSession] = useState(null)
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session)
+    })
+
+    supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session)
+    })
+  }, [])
+
   return (
-    <AppNavigation />
+  <>
+    {session && session.user ? <AppNavigation key={session.user.id} session={session} /> : <Auth />}
+  </>
   );
 }
 

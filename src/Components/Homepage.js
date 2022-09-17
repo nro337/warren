@@ -2,7 +2,7 @@ import { Box, Center, Column, NativeBaseProvider, Row, Text, Flex, Input, Button
 import { SafeAreaView } from "react-native-safe-area-context";
 import { extendTheme } from 'native-base';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import * as ImagePicker from 'expo-image-picker';
 import {Permissions} from 'expo-image-picker';
 import {Image, Alert} from "react-native";
@@ -17,7 +17,7 @@ const config = {
 
 const customTheme = extendTheme({config})
 
-export default function Homepage({navigation}) {
+export default function Homepage({navigation, route}) {
   const [date, setDate] = useState(new Date(Date.now()));
   const [mode, setMode] = useState('date');
   const [show, setShow] = useState(false);
