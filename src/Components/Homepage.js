@@ -7,6 +7,7 @@ import * as ImagePicker from 'expo-image-picker';
 import {Permissions} from 'expo-image-picker';
 import {Image, Alert} from "react-native";
 import { Camera, CameraType } from "expo-camera";
+import * as MediaLibrary from 'expo-media-library';
 
 import { FontAwesome, Ionicons, MaterialIcons } from '@expo/vector-icons';
 
@@ -62,6 +63,7 @@ export default function Homepage({navigation, route}) {
   };
 
   const openCamera = async () => {
+    requestCameraPermission()
     if(cameraPermission.granted === true){
        let data =  await ImagePicker.launchCameraAsync({
          mediaTypes:ImagePicker.MediaTypeOptions.Images,
@@ -82,6 +84,35 @@ export default function Homepage({navigation, route}) {
       }
     }else{
       Alert.alert("you need to give up permission to work")
+    }
+  }
+
+  const requestCameraPermission = async () => {
+    const camPermissions = await ImagePicker.requestCameraPermissionsAsync()
+    if (camPermissions.granted) {
+      setCameraPermission(camPermissions)
+    } else {
+      Alert.alert('Camera permission not allowed!')
+    }
+  }
+
+  const createAlbum = async () => {
+    const res = await MediaLibrary.requestPermissionsAsync()
+    if(res.granted) {
+      let existingAlbum = await MediaLibrary.getAlbumAsync('Warren')
+      if (existingAlbum != null) {
+        console.log('Warren album already exists')
+      } else {
+        MediaLibrary.createAlbumAsync('Warren')
+        .then(res => {
+          console.log(res)
+        })
+        .catch(error => {
+          console.log('err', error)
+        })
+      }
+    } else {
+      Alert.alert("You need to grant permission to create a new album")
     }
   }
 
@@ -157,6 +188,16 @@ export default function Homepage({navigation, route}) {
                 </Column>
                 <Column alignItems="center" w="1/2">
                   <Input size="lg" placeholder="Name" w="100%" mr="4" bg='white' />
+                </Column>
+              </Row>
+            </Center>
+            <Center w="98%" h="1/6" bg="darkBlue.600" shadow={3}>
+              <Row alignItems="center">
+                <Column alignItems="center" w="1/2">
+                  <Text fontSize={"xl"} alignSelf="center">Picture</Text>
+                </Column>
+                <Column alignItems="center" w="1/2">
+                  <Button size={'md'} onPress={() => createAlbum()}>Test</Button>
                 </Column>
               </Row>
             </Center>
