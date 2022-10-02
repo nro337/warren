@@ -8,6 +8,7 @@ import {Permissions} from 'expo-image-picker';
 import {Image, Alert} from "react-native";
 import { Camera, CameraType } from "expo-camera";
 import * as MediaLibrary from 'expo-media-library';
+import { supabase } from '../../database/supabase'
 
 import { FontAwesome, Ionicons, MaterialIcons } from '@expo/vector-icons';
 
@@ -18,13 +19,14 @@ const config = {
 
 const customTheme = extendTheme({config})
 
-export default function Homepage({navigation, route}) {
+export default function Homepage() {
   const [date, setDate] = useState(new Date(Date.now()));
   const [mode, setMode] = useState('date');
   const [show, setShow] = useState(false);
   const [image, setImage] = useState(null);
   const [hasPermission, setHasPermission] = useState(null);
   const [cameraPermission, setCameraPermission] = ImagePicker.useCameraPermissions();
+
   
   const onChange = (event, selectedDate) => {
     const currentDate = selectedDate;
@@ -114,6 +116,15 @@ export default function Homepage({navigation, route}) {
     } else {
       Alert.alert("You need to grant permission to create a new album")
     }
+  }
+
+  const submitWarranty = async () => {
+    let expiration_date = ((new Date()).toISOString()).toLocaleString()
+    const { data, error } = await supabase
+      .from('warranties')
+      .insert([
+        {item_name: "", expiration_date: expiration_date, profile_id: profile_id}
+      ])
   }
 
   return (

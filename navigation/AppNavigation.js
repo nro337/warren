@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from "react";
-import { Button, Text } from "react-native";
+import { Button, Text, View } from "react-native";
 import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import { createStackNavigator } from "@react-navigation/stack";
@@ -20,10 +20,11 @@ const Stack = createStackNavigator();
 export default function AppNavigation({session}) {
   const [loading, setLoading] = useState(true)
   const [username, setUsername] = useState('')
+  const [profile_id, setProfileID] = useState('')
   const [website, setWebsite] = useState('')
   const [avatarUrl, setAvatarUrl] = useState('')
 
-  console.log(session)
+  //console.log(session)
 
   useEffect(() => {
     if (session) getProfile()
@@ -45,6 +46,7 @@ export default function AppNavigation({session}) {
 
       if (data) {
         setUsername(data.username)
+        setProfileID(data.id)
         setWebsite(data.website)
         setAvatarUrl(data.avatar_url)
       }
@@ -88,7 +90,7 @@ export default function AppNavigation({session}) {
     }
   }
 
-  function HomeStack({navigation}) {
+  function HomeStack() {
     return (
       <Stack.Navigator>
         <Stack.Screen name="Warren" component={Homepage} options={{
@@ -118,11 +120,6 @@ export default function AppNavigation({session}) {
             } else if (route.name == 'Catalog') {
               iconName = focused ? 'list' : 'list-outline';
             }
-            // else if (route.name === 'Result List') {
-            //   iconName = focused ? 'trophy' : 'trophy-outline';
-            // } else if (route.name === 'Settings') {
-            //   iconName = focused ? 'settings' : 'settings-outline';
-            // }
             return <Ionicons name={iconName} size={size} color={color} />
           }
         })}
