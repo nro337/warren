@@ -99,7 +99,7 @@ export default function AppNavigation({route, navigation, session}) {
               <Button title="Sign Out" onPress={() => supabase.auth.signOut()} />
             ),
             headerLeft: () => (
-              <Text>{username}</Text>
+              <Text style={{fontSize: 15, marginLeft: 10, marginTop: 5, fontWeight: "400"}}>{username}</Text>
             )
           })} 
           /> : <Stack.Screen name="Warren" component={Loading} />
@@ -108,12 +108,13 @@ export default function AppNavigation({route, navigation, session}) {
     )
   }
   
+  // Here is reference that allowed this to work: https://stackoverflow.com/questions/61127168/react-navigation-v5-how-to-get-route-params-of-the-parent-navigator-inside-the 
+  // Recommended by official Nav docs: https://reactnavigation.org/docs/nesting-navigators  
   const DEFAULT_CONTEXT = {
     pid: profile_id
   }
   const ParentContext = createContext(DEFAULT_CONTEXT);
   const { pid } = useContext(ParentContext);
-
   return (
       <NavigationContainer>
         <ParentContext.Provider value={{pid}}>
@@ -134,7 +135,7 @@ export default function AppNavigation({route, navigation, session}) {
           })}
         >
           <Tab.Screen name="Home" component={HomeStack} options={{headerShown: false}} />
-          <Tab.Screen name="Catalog" component={Catalog} />
+          { loading ? <Tab.Screen name="Loading Catalog" component={Loading} /> : <Tab.Screen name="Catalog" component={Catalog} initialParams={{profile_id}} /> }
         </Tab.Navigator>
         </ParentContext.Provider>
       </NavigationContainer>

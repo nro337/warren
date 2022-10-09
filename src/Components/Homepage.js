@@ -1,8 +1,8 @@
-import { Box, Center, Column, NativeBaseProvider, Row, Text, Flex, Input, Button, IconButton, View, Icon, Pressable, ScrollView } from "native-base";
+import { Box, Center, Column, NativeBaseProvider, Row, Text, Flex, Input, Button, IconButton, View, Icon, Pressable, ScrollView, useToast, Toast } from "native-base";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { extendTheme } from 'native-base';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, createRef } from "react";
 import * as ImagePicker from 'expo-image-picker';
 import {Permissions} from 'expo-image-picker';
 import {Image, Alert} from "react-native";
@@ -130,6 +130,29 @@ export default function Homepage({route}) {
       .insert([
         {item_name: itemName, expiration_date: expiration_date, profile_id: profile_id}
       ])
+      if (error) {
+        throw error
+      }
+      try {
+        const {data, error, status} = await supabase
+        .from('warranties')
+        .select('id, profile_id, created_at, item_name')
+        .eq('profile_id', profile_id)
+        if (error && status !== 406) {
+          throw error
+        }
+
+        if (data) {
+          data.forEach((warranty) => {
+            if (warranty.item_name === itemName) {
+              Toast.show({title: `${warranty.item_name} submitted successfully!`, placement: 'top', bgColor: 'success.500'})
+              setItemName('')
+            }
+          })
+        }
+      } catch (error) {
+        console.log(error)
+      }
     } catch (error) {
       console.log(error)
     }
@@ -146,7 +169,7 @@ export default function Homepage({route}) {
                   <Text fontSize={"xl"} alignSelf="center">Item Name</Text>
                 </Column>
                 <Column alignItems="center" w="1/2">
-                  <Input size="lg" placeholder="Name" w="100%" mr="4" bg='white' color="black" onChangeText={(newText) => setItemName(newText)} />
+                  <Input size="lg" placeholder="Name" w="100%" mr="4" bg='white' color="black" onChangeText={(newText) => {setItemName(newText)}} value={itemName}/>
                 </Column>
               </Row>
             </Center>
