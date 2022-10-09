@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from "react";
+import React, {useEffect, useState, createContext, useContext} from "react";
 import { Button, Text, View } from "react-native";
 import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
@@ -7,17 +7,18 @@ import { createStackNavigator } from "@react-navigation/stack";
 import { Ionicons } from '@expo/vector-icons';
 
 import { supabase } from '../database/supabase'
-//import { session } from '@supabase/supabase-js'
+import { Session } from '@supabase/supabase-js'
 
 import Homepage from "../src/Components/Homepage";
 import Catalog from "../src/Components/Catalog"
+import Loading from "../src/Components/Loading"
 
 const Tab = createBottomTabNavigator();
 
 const Stack = createStackNavigator();
 
 
-export default function AppNavigation({session}) {
+export default function AppNavigation({route, navigation, session}) {
   const [loading, setLoading] = useState(true)
   const [username, setUsername] = useState('')
   const [profile_id, setProfileID] = useState('')
@@ -25,7 +26,6 @@ export default function AppNavigation({session}) {
   const [avatarUrl, setAvatarUrl] = useState('')
 
   //console.log(session)
-
   useEffect(() => {
     if (session) getProfile()
   }, [session])
@@ -46,7 +46,7 @@ export default function AppNavigation({session}) {
 
       if (data) {
         setUsername(data.username)
-        setProfileID(data.id)
+        setProfileID(session.user.id)
         setWebsite(data.website)
         setAvatarUrl(data.avatar_url)
       }
@@ -90,43 +90,53 @@ export default function AppNavigation({session}) {
     }
   }
 
-  function HomeStack() {
+  function HomeStack({navigation, route}) {
+    route.params = pid
     return (
-      <Stack.Navigator>
-        <Stack.Screen name="Warren" component={Homepage} options={{
-          headerRight:() => (
-            <Button title="Sign Out" onPress={() => supabase.auth.signOut()} />
-          ),
-          headerLeft: () => (
-            <Text>{username}</Text>
-          )
-        }} 
-        />
-      </Stack.Navigator>
+        <Stack.Navigator>
+          {!loading ? <Stack.Screen name="Warren" component={Homepage} initialParams={route} options={(navigation, route) => ({
+            headerRight:() => (
+              <Button title="Sign Out" onPress={() => supabase.auth.signOut()} />
+            ),
+            headerLeft: () => (
+              <Text>{username}</Text>
+            )
+          })} 
+          /> : <Stack.Screen name="Warren" component={Loading} />
+          }
+        </Stack.Navigator>
     )
   }
+  
+  const DEFAULT_CONTEXT = {
+    pid: profile_id
+  }
+  const ParentContext = createContext(DEFAULT_CONTEXT);
+  const { pid } = useContext(ParentContext);
 
   return (
-    <NavigationContainer>
-      <Tab.Navigator
-        initialRouteName="Home"
-        screenOptions={({route}) => ({
-          tabBarIcon: ({focused, color, size}) => {
-            let iconName;
-            if (route.name === 'Home') {
-              iconName = focused ? 'home' : 'home-outline';
-              color = focused ? 'darkblue' : 'gray';
-              
-            } else if (route.name == 'Catalog') {
-              iconName = focused ? 'list' : 'list-outline';
+      <NavigationContainer>
+        <ParentContext.Provider value={{pid}}>
+        <Tab.Navigator
+          initialRouteName="Home"
+          screenOptions={({route, navigation}) => ({
+            tabBarIcon: ({focused, color, size}) => {
+              let iconName;
+              if (route.name === 'Home') {
+                iconName = focused ? 'home' : 'home-outline';
+                color = focused ? 'darkblue' : 'gray';
+                
+              } else if (route.name == 'Catalog') {
+                iconName = focused ? 'list' : 'list-outline';
+              }
+              return <Ionicons name={iconName} size={size} color={color} />
             }
-            return <Ionicons name={iconName} size={size} color={color} />
-          }
-        })}
-      >
-        <Tab.Screen name="Home" component={HomeStack} options={{headerShown: false}} />
-        <Tab.Screen name="Catalog" component={Catalog} />
-      </Tab.Navigator>
-    </NavigationContainer>
+          })}
+        >
+          <Tab.Screen name="Home" component={HomeStack} options={{headerShown: false}} />
+          <Tab.Screen name="Catalog" component={Catalog} />
+        </Tab.Navigator>
+        </ParentContext.Provider>
+      </NavigationContainer>
   )
 }

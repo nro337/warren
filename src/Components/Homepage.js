@@ -19,14 +19,17 @@ const config = {
 
 const customTheme = extendTheme({config})
 
-export default function Homepage() {
+export default function Homepage({route}) {
   const [date, setDate] = useState(new Date(Date.now()));
   const [mode, setMode] = useState('date');
   const [show, setShow] = useState(false);
   const [image, setImage] = useState(null);
   const [hasPermission, setHasPermission] = useState(null);
   const [cameraPermission, setCameraPermission] = ImagePicker.useCameraPermissions();
+  const [itemName, setItemName] = useState('')
 
+  const { params } = route.params
+  const profile_id = params
   
   const onChange = (event, selectedDate) => {
     const currentDate = selectedDate;
@@ -119,12 +122,17 @@ export default function Homepage() {
   }
 
   const submitWarranty = async () => {
+    console.log("Submit triggered")
     let expiration_date = ((new Date()).toISOString()).toLocaleString()
-    const { data, error } = await supabase
+    try {
+      const { data, error } = await supabase
       .from('warranties')
       .insert([
-        {item_name: "", expiration_date: expiration_date, profile_id: profile_id}
+        {item_name: itemName, expiration_date: expiration_date, profile_id: profile_id}
       ])
+    } catch (error) {
+      console.log(error)
+    }
   }
 
   return (
@@ -138,7 +146,7 @@ export default function Homepage() {
                   <Text fontSize={"xl"} alignSelf="center">Item Name</Text>
                 </Column>
                 <Column alignItems="center" w="1/2">
-                  <Input size="lg" placeholder="Name" w="100%" mr="4" bg='white' color="black" />
+                  <Input size="lg" placeholder="Name" w="100%" mr="4" bg='white' color="black" onChangeText={(newText) => setItemName(newText)} />
                 </Column>
               </Row>
             </Center>
@@ -212,6 +220,7 @@ export default function Homepage() {
                 </Column>
               </Row>
             </Center>
+            <Button size={'md'} onPress={() => submitWarranty()}>Submit</Button>
           </Column>
         </ScrollView>
       </Box>

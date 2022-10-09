@@ -4,7 +4,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { supabase } from './database/supabase'
 import Auth from './src/Components/Auth';
-import { Session } from '@supabase/supabase-js'
+import { session } from '@supabase/supabase-js'
 import 'react-native-url-polyfill/auto'
 
 import AppNavigation from './navigation/AppNavigation';
